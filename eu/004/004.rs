@@ -1,24 +1,30 @@
 extern crate itertools;
 
-fn decimal_digits(val: u64) -> Vec<u8> {
-    let mut digits = Vec::new();
-    let mut val = val;
-    while val > 0 {
-        digits.push((val % 10) as u8);
-        val /= 10;
+struct DecimalDigitsOf {
+    val: u64,
+}
+
+impl Iterator for DecimalDigitsOf {
+    type Item = u8;
+    fn next(&mut self) -> Option<u8> {
+        if self.val == 0 { None }
+        else { 
+            let digit = (self.val % 10) as u8;
+            self.val /= 10;
+            Some(digit)
+        }
     }
+}
+
+fn decimal_digits(val: u64) -> Vec<u8> {
+    let mut digits: Vec<_> = DecimalDigitsOf { val: val }.collect();
     digits.reverse();
     digits
 }
 
 fn vec_is_palindrome<A: PartialEq>(vec: Vec<A>) -> bool {
     let len = vec.len();
-    for i in 0 .. len / 2 {
-        if vec[i] != vec[len - 1 - i] {
-            return false;
-        }
-    }
-    true
+    (0 .. len / 2).all(|i| { vec[i] == vec[len - 1 - i] })
 }
 
 fn is_decimal_palindrome(val: u64) -> bool {

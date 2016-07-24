@@ -1,0 +1,6 @@
+[package]
+name = "edit"
+version = "0.1.0"
+authors = ["Alex Samuel <alex@alexsamuel.net>"]
+
+[dependencies]

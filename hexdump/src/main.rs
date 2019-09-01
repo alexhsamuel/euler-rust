@@ -48,8 +48,10 @@ fn parse_args(argv: env::Args) -> Args {
 
 fn hexdump(reader: &mut BufReader<File>) {
     let mut buf: [u8; 8] = [0; 8];
+    let mut pos: u64 = 0;
     loop {
         let num_read = reader.read(&mut buf).unwrap();
+        print!("{:08x} | ", pos);
         for i in 0 .. num_read {
             print!("{:02x} ", buf[i]);
         }
@@ -57,6 +59,7 @@ fn hexdump(reader: &mut BufReader<File>) {
         if num_read < 8 {
             break
         }
+        pos += num_read as u64;
     }
 }
 

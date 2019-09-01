@@ -51,6 +51,9 @@ fn hexdump(reader: &mut BufReader<File>) {
     let mut pos: u64 = 0;
     loop {
         let num_read = reader.read(&mut buf).unwrap();
+        if num_read == 0 {
+            break
+        }
         print!("{:08x} | ", pos);
         for i in 0 .. num_read {
             print!("{:02x} ", buf[i]);

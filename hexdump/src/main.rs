@@ -2,6 +2,8 @@
 
 use std::env;
 use std::fs::File;
+use std::io::BufReader;
+use std::io::Read;
 use std::io::Write;
 use std::process;
 
@@ -44,26 +46,26 @@ fn parse_args(argv: env::Args) -> Args {
 }
 
 
-fn hexdump(args: Args) {
-    let mut file = try!(File::open(args.path));
+fn hexdump(args: Args) -> std::io::Result<()> {
+    let file = try!(File::open(args.path));
+    let mut buf_reader = BufReader::new(file);
+    let mut buf: [u8; 8] = [0; 8];
     loop {
-        let mut buf: [u8; 8] = [0; 8];
-        let num_read = file.read(buf).unwrap();
-        for i in 0 .. 8 {
-            if i < num_read {
-                print!("{:02x} ", buf[i]);
-            }
-            println!("");
+        let num_read = buf_reader.read(&mut buf).unwrap();
+        for i in 0 .. num_read {
+            print!("{:02x} ", buf[i]);
         }
+        println!("");
         if num_read < 8 {
             break
         }
     }
+    Ok(())
 }
 
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let args = parse_args(env::args());
-    hexdump(args);
+    hexdump(args)
 }
 

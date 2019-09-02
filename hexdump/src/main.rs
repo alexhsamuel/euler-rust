@@ -17,8 +17,7 @@ struct Args {
 }
 
 
-static USAGE: &'static str = "usage: hexdump [ OPTIONS ] PATH\
-";
+static USAGE: &'static str = "usage: hexdump [ OPTIONS ] PATH";
 
 fn parse_args(argv: env::Args) -> Args {
     let mut path: String = String::from("");

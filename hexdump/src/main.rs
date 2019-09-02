@@ -3,8 +3,10 @@
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
+use std::io::Error;
 use std::io::Read;
 use std::io::Write;
+use std::iter::Iterator;
 use std::process;
 
 
@@ -46,28 +48,33 @@ fn parse_args(argv: env::Args) -> Args {
 }
 
 
-fn hexdump(reader: &mut BufReader<File>) {
+fn hexdump<I>(mut bytes: I, line_len: u8) 
+where
+    I: Iterator<Item = Result<u8, Error>>,
+{
     fn dig(val: u8) -> char {
         ((if val < 10 { 48 } else { 55 }) + val) as char
     }
 
-    let mut buf: [u8; 8] = [0; 8];
     let mut pos: u64 = 0;
-    loop {
-        let num_read = reader.read(&mut buf).unwrap();
-        if num_read == 0 {
-            break
+    'outer: loop {
+        for line_pos in 0 .. line_len {
+            if let Some(Ok(val)) = bytes.next() {
+                if line_pos == 0 {
+                    print!("{:08x} | ", pos);
+                }
+
+                print!("{}{} ", dig(val >> 4), dig(val & 15));
+                pos += 1;
+            }
+            else {
+                if line_pos > 0 {
+                    println!("")
+                }
+                break 'outer
+            }
         }
-        print!("{:08x} | ", pos);
-        for i in 0 .. num_read {
-            let val = buf[i];
-            print!("{}{} ", dig(val >> 4), dig(val & 15));
-        }
-        println!("");
-        if num_read < 8 {
-            break
-        }
-        pos += num_read as u64;
+        println!("")
     }
 }
 
@@ -75,8 +82,8 @@ fn hexdump(reader: &mut BufReader<File>) {
 fn main() -> std::io::Result<()> {
     let args = parse_args(env::args());
     let file = try!(File::open(args.path));
-    let mut buf_reader = BufReader::new(file);
-    hexdump(&mut buf_reader);
+    let buf_reader = BufReader::new(file);
+    hexdump(&mut buf_reader.bytes(), 12);
     Ok(())
 }
 

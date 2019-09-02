@@ -1,5 +1,7 @@
 // FIXME: Use an argument parsing library.
 
+extern crate libc;
+
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
@@ -99,7 +101,14 @@ where
 }
 
 
-fn main() -> std::io::Result<()> {
+fn main() -> std::io::Result<()> { 
+    // Rust programs ignore SIGPIPE by default.  Reenable the default 
+    // disposition (termination) so the program is killed if input or output
+    // breaks.
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+
     let args = parse_args(env::args());
     let file = try!(File::open(args.path));
     hexdump(&mut BufReader::new(file).bytes(), 16);

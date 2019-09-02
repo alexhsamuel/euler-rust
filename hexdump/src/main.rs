@@ -26,7 +26,7 @@ fn parse_args(argv: env::Args) -> Args {
 
     for arg in argv.skip(1) {
         if arg == "-h" || arg == "--help" {
-            print!("{}", USAGE);
+            println!("{}", USAGE);
             process::exit(0);
         }
         else {

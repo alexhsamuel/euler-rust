@@ -8,6 +8,7 @@ use std::io::Read;
 use std::io::Write;
 use std::iter::Iterator;
 use std::process;
+use std::vec::Vec;
 
 
 #[derive(Debug)]
@@ -56,23 +57,44 @@ where
         ((if val < 10 { 48 } else { 55 }) + val) as char
     }
 
+    fn render(c: u8) -> char {
+        if c < 32 || c > 126 { '\u{2022}' } else { c as char }
+    }
+
     let mut pos: u64 = 0;
     let mut done = false;
+    let mut line: Vec<u8> = Vec::with_capacity(line_len as usize);
     while !done {
         for line_pos in 0 .. line_len {
             if let Some(Ok(val)) = bytes.next() {
+                // Start of line: show position.
                 if line_pos == 0 {
                     print!("{:08x} | ", pos);
                 }
 
                 print!("{}{} ", dig(val >> 4), dig(val & 15));
                 pos += 1;
+
+                line.push(val);
             }
             else {
                 done = true;
                 break;
             }
         }
+
+        // Pad out a partial line.
+        for _ in line.len() .. line_len as usize {
+            print!("   ");
+        }
+
+        // Now render bytes
+        print!("| ");
+        for val in line.iter() {
+            print!("{}", render(*val));
+        }
+        line.clear();
+
         println!("");
     }
 }
@@ -82,7 +104,7 @@ fn main() -> std::io::Result<()> {
     let args = parse_args(env::args());
     let file = try!(File::open(args.path));
     let buf_reader = BufReader::new(file);
-    hexdump(&mut buf_reader.bytes(), 12);
+    hexdump(&mut buf_reader.bytes(), 16);
     Ok(())
 }
 

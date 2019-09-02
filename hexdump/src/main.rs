@@ -57,7 +57,8 @@ where
     }
 
     let mut pos: u64 = 0;
-    'outer: loop {
+    let mut done = false;
+    while !done {
         for line_pos in 0 .. line_len {
             if let Some(Ok(val)) = bytes.next() {
                 if line_pos == 0 {
@@ -68,13 +69,11 @@ where
                 pos += 1;
             }
             else {
-                if line_pos > 0 {
-                    println!("")
-                }
-                break 'outer
+                done = true;
+                break;
             }
         }
-        println!("")
+        println!("");
     }
 }
 

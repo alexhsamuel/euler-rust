@@ -103,8 +103,7 @@ where
 fn main() -> std::io::Result<()> {
     let args = parse_args(env::args());
     let file = try!(File::open(args.path));
-    let buf_reader = BufReader::new(file);
-    hexdump(&mut buf_reader.bytes(), 16);
+    hexdump(&mut BufReader::new(file).bytes(), 16);
     Ok(())
 }
 

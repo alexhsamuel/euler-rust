@@ -50,7 +50,7 @@ fn parse_args(argv: env::Args) -> Args {
 }
 
 
-fn hexdump<I>(mut bytes: I, line_len: u8) 
+fn hexdump<I>(mut bytes: I, line_len: u16) 
 where
     I: Iterator<Item = Result<u8, Error>>,
 {
@@ -101,6 +101,25 @@ where
 }
 
 
+const TIOCGWINSZ: libc::c_ulong = 0x40087468;
+
+#[repr(C)]
+struct winsize {
+    ws_row: libc::c_ushort, /* rows, in characters */
+    ws_col: libc::c_ushort, /* columns, in characters */
+    ws_xpixel: libc::c_ushort, /* horizontal size, pixels */
+    ws_ypixel: libc::c_ushort /* vertical size, pixels */
+}
+
+fn get_winsize() -> std::io::Result<winsize> {
+    let w = winsize { ws_row: 0, ws_col: 0, ws_xpixel: 0, ws_ypixel: 0 };
+    match unsafe { libc::ioctl(libc::STDOUT_FILENO, TIOCGWINSZ, &w) } {
+        0 => Ok(w),
+        _ => Err(std::io::Error::last_os_error())
+    }
+}
+
+
 fn main() -> std::io::Result<()> { 
     // Rust programs ignore SIGPIPE by default.  Reenable the default 
     // disposition (termination) so the program is killed if input or output
@@ -111,7 +130,11 @@ fn main() -> std::io::Result<()> {
 
     let args = parse_args(env::args());
     let file = try!(File::open(args.path));
-    hexdump(&mut BufReader::new(file).bytes(), 16);
+
+    let winsize = get_winsize().unwrap();
+    let line_len = (winsize.ws_col - 14) / 4;
+
+    hexdump(&mut BufReader::new(file).bytes(), line_len);
     Ok(())
 }
 

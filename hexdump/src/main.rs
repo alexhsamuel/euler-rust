@@ -58,7 +58,8 @@ where
     fn render(c: u8) -> char {
         if c < 32 || c > 126 {
             '\u{2022}'
-        } else {
+        }
+        else {
             c as char
         }
     }

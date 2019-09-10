@@ -49,7 +49,7 @@ fn parse_args(argv: env::Args) -> Args {
 
 fn hexdump<I>(mut bytes: I, line_len: u16)
 where
-    I: Iterator<Item = Result<u8, Error>>,
+    I: Iterator<Item = u8>,
 {
     fn dig(val: u8) -> char {
         ((if val < 10 { 48 } else { 55 }) + val) as char
@@ -69,7 +69,7 @@ where
     let mut line: Vec<u8> = Vec::with_capacity(line_len as usize);
     while !done {
         for line_pos in 0..line_len {
-            if let Some(Ok(val)) = bytes.next() {
+            if let Some(val) = bytes.next() {
                 // Start of line: show position.
                 if line_pos == 0 {
                     print!("{:08x} | ", pos);
@@ -139,7 +139,8 @@ fn main() -> std::io::Result<()> {
     let winsize = get_winsize().unwrap();
     let line_len = (winsize.ws_col - 14) / 4;
 
-    hexdump(&mut BufReader::new(file).bytes(), line_len);
+    let bytes = &mut BufReader::new(file).bytes().filter_map(|i| i.ok());
+    hexdump(bytes, line_len);
     Ok(())
 }
 
